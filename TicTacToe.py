@@ -68,7 +68,7 @@ class Board:
 
 class MiniMax:
     
-    def __init__(self,mode=0,player=2):
+    def __init__(self, mode=1, player=2):
         self.mode = mode
         self.player = player
 
@@ -78,14 +78,63 @@ class MiniMax:
 
         return empty_squares[index]
     
+    def minimax(self, board, maximizing):
+        #Terminal state
+        state = board.final_state()
+
+        #Player 1 wins
+        if state == 1:
+            return 1, None
+        
+        elif state == 2:
+            return -1, None
+        
+        elif board.is_full():
+            return 0, None
+        
+        if maximizing:
+            max_eval = -10
+            best_move = None
+            empty_squares = board.get_empty_squares()
+
+            for (row,column) in empty_squares:
+                temp_board = copy.deepcopy(board)
+                temp_board.mark_square(row,column, self.player % 2 + 1)
+                eval = self.minimax(temp_board, False)[0]
+                if eval > max_eval:
+                    max_eval = eval
+                    best_move = (row,column)
+            
+            return max_eval, best_move
+        
+        else:
+            min_eval = 10
+            best_move = None
+            empty_squares = board.get_empty_squares()
+
+            for (row,column) in empty_squares:
+                temp_board = copy.deepcopy(board)
+                temp_board.mark_square(row,column, self.player)
+                eval = self.minimax(temp_board, True)[0]
+                if eval < min_eval:
+                    min_eval = eval
+                    best_move = (row,column)
+            
+            return min_eval, best_move
+                
+        
+    
     def eval(self,main_board):
         if self.mode == 0:
             #random
+            eval = "Random"
             move = self.rand(main_board)
 
         else:
             #minimax
-            pass
+            eval, move = self.minimax(main_board,False)
+
+        print(f"Best move is {move} with evaluation of {eval}")
 
         return move
     
