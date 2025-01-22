@@ -20,6 +20,9 @@ class Board:
     def mark_square(self, row, column, player):
         self.squares[row][column] = player 
 
+    def is_empty(self, row, column):
+        return self.squares[row][column] == 0
+
 
 class MiniMax:
     pass
@@ -44,13 +47,25 @@ class Game:
 def main():
     
     game = Game()
+    board = game.board
 
+    #Game loop
     while True:
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                column, row = event.pos
+                row = row // SQUARESIZE
+                column = column // SQUARESIZE
+                
+                if board.is_empty(row,column):
+                    board.mark_square(row,column,1)
+                
+                
 
         pygame.display.update()
 
