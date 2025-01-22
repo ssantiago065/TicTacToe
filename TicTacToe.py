@@ -31,7 +31,7 @@ class Game:
     
     def __init__(self):
         self.board = Board()
-        self.player = 1
+        self.player = 1 
         self.show_lines()
 
     def show_lines(self):
@@ -42,6 +42,27 @@ class Game:
         #Horizontal
         pygame.draw.line(screen, LINE, (0,SQUARESIZE), (WIDTH,SQUARESIZE), LINEWIDTH)
         pygame.draw.line(screen, LINE, (0,HEIGHT-SQUARESIZE), (WIDTH,HEIGHT-SQUARESIZE), LINEWIDTH)
+
+    def change_turn(self):
+        self.player = self.player % 2 + 1
+
+    def draw_fig(self, row, column):
+        if self.player == 1:
+            #Cross
+            #Descending Line
+            start_desc = (column * SQUARESIZE + OFFSET, row * SQUARESIZE + OFFSET)
+            end_desc = (column * SQUARESIZE + SQUARESIZE - OFFSET, row * SQUARESIZE + SQUARESIZE - OFFSET)
+            pygame.draw.line(screen, CROSS, start_desc, end_desc, CROSSWIDTH)
+
+            #Ascending Line
+            start_asc = (column * SQUARESIZE + OFFSET, row * SQUARESIZE + SQUARESIZE - OFFSET)
+            end_asc = (column * SQUARESIZE + SQUARESIZE - OFFSET, row * SQUARESIZE + OFFSET)
+            pygame.draw.line(screen, CROSS, start_asc, end_asc, CROSSWIDTH)
+
+        elif self.player == 2:
+            #Circle
+            center = (column * SQUARESIZE + SQUARESIZE // 2, row * SQUARESIZE + SQUARESIZE // 2)
+            pygame.draw.circle(screen, CIRCLE, center, RADIUS, CIRCLEWIDTH)
     
 
 def main():
@@ -63,8 +84,11 @@ def main():
                 column = column // SQUARESIZE
                 
                 if board.is_empty(row,column):
-                    board.mark_square(row,column,1)
-                
+                    board.mark_square(row,column,game.player)
+                    game.draw_fig(row, column)
+                    game.change_turn()
+                    
+
                 
 
         pygame.display.update()
