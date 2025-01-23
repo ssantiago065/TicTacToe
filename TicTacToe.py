@@ -10,7 +10,7 @@ from constants import *
 pygame.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("UNBEATABLE TIC TAC TOE")
-screen.fill(BACKGROUND)
+
 
 class Board:
     
@@ -19,24 +19,44 @@ class Board:
         self.empty_squares = self.squares
         self.marked_squares = 0
 
-    def final_state(self):
+    def final_state(self, show=False):
         
         #Vertical wins
         for column in range(COLUMNS):
             if self.squares[0][column] == self.squares[1][column] == self.squares[2][column] != 0:
+                if show:
+                    color = CIRCLE if self.squares[0][column] == 2 else LINE
+                    start = (column * SQUARESIZE + SQUARESIZE // 2, OFFSET)
+                    finish = (column * SQUARESIZE + SQUARESIZE // 2, HEIGHT - OFFSET)
+                    pygame.draw.line(screen, color, start, finish, LINEWIDTH)
                 return self.squares[0][column]
 
         #Horizontal wins
         for row in range(ROWS):
             if self.squares[row][0] == self.squares[row][1] == self.squares[row][2] != 0:
+                if show:
+                    color = CIRCLE if self.squares[row][0] == 2 else LINE
+                    start = (OFFSET, row * SQUARESIZE + SQUARESIZE // 2)
+                    finish = (WIDTH - OFFSET, row * SQUARESIZE + SQUARESIZE // 2)
+                    pygame.draw.line(screen, color, start, finish, LINEWIDTH)
                 return self.squares[row][0]
 
         #Descending diagonal
         if self.squares[0][0] == self.squares[1][1] == self.squares[2][2] != 0:
+            if show:
+                color = CIRCLE if self.squares[1][1] == 2 else LINE
+                start = (OFFSET - 20, OFFSET - 20)
+                finish = (WIDTH - OFFSET + 20, HEIGHT - OFFSET + 20)
+                pygame.draw.line(screen, color, start, finish, LINEWIDTH)
             return self.squares[1][1]
         
         #Ascending diagonal
         if self.squares[2][0] == self.squares[1][1] == self.squares[0][2] != 0:
+            if show:
+                color = CIRCLE if self.squares[1][1] == 2 else LINE
+                start = (OFFSET - 20, HEIGHT - OFFSET + 20)
+                finish = (WIDTH - OFFSET + 20, OFFSET - 20)
+                pygame.draw.line(screen, color, start, finish, LINEWIDTH)
             return self.squares[1][1]
         
         return 0
@@ -146,6 +166,7 @@ class Game:
         self.player = 1 # 1 - cross 2 - circle
         self.gamemode = "minimax" #pvp or minimax
         self.running = True
+        screen.fill(BACKGROUND)
         self.show_lines()
 
     def show_lines(self):
@@ -178,6 +199,23 @@ class Game:
             center = (column * SQUARESIZE + SQUARESIZE // 2, row * SQUARESIZE + SQUARESIZE // 2)
             pygame.draw.circle(screen, CIRCLE, center, RADIUS, CIRCLEWIDTH)
     
+    def make_move(self, row, column):
+        self.board.mark_square(row,column,self.player)
+        self.draw_fig(row, column)
+        self.change_turn()
+
+    def change_gamemode(self):
+        self.gamemode = "minimax" if self.gamemode == "pvp" else "pvp"
+
+    def reset(self):
+        self.__init__()
+
+    def is_over(self):
+        return self.board.final_state(show=True) != 0 or self.board.is_full()
+
+
+
+    
 
 def main():
     
@@ -193,28 +231,44 @@ def main():
                 pygame.quit()
                 sys.exit()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.KEYDOWN:
+                #g - change mode
+                if event.key == pygame.K_g:
+                    game.change_gamemode()
+
+                #r - reset game
+                if event.key == pygame.K_r:
+                    game.reset()
+                    board = game.board
+                    minimax = game.minimax
+
+                #0 - random mode
+                if event.key == pygame.K_0:
+                    minimax.mode = 0
+
+                if event.key == pygame.K_1:
+                #1 - minimax mode
+                    minimax.mode = 1
+
+            if event.type == pygame.MOUSEBUTTONDOWN :
                 column, row = event.pos
                 row = row // SQUARESIZE
                 column = column // SQUARESIZE
                 
-                if board.square_empty(row,column):
-                    board.mark_square(row,column,game.player)
-                    game.draw_fig(row, column)
-                    game.change_turn()
-            
-        if game.gamemode == "minimax" and game.player == minimax.player:
+                if board.square_empty(row,column) and game.running:
+                    game.make_move(row, column)
+
+                    if game.is_over():
+                        game.running = False
+
+        if game.gamemode == "minimax" and game.player == minimax.player and game.running:
             pygame.display.update()
 
             row, column = minimax.eval(board)
-            board.mark_square(row,column,minimax.player)
-            game.draw_fig(row, column)
-            game.change_turn()
-            
+            game.make_move(row, column)
 
-                    
-
-                
+            if game.is_over():
+                game.running = False
 
         pygame.display.update()
 
