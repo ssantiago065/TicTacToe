@@ -12,6 +12,10 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("UNBEATABLE TIC TAC TOE")
 
+def draw_text(screen, text, position, font_size=30, color=(255, 255, 255)):
+    font = pygame.font.Font(None, font_size)
+    text_surface = font.render(text, True, color)
+    screen.blit(text_surface, position)
 
 class Board:
     
@@ -84,9 +88,6 @@ class Board:
     def is_empty(self):
         return self.marked_squares == 0
     
-
-    
-
 class MiniMax:
     
     def __init__(self, mode=1, player=2):
@@ -122,14 +123,14 @@ class MiniMax:
 
             for (row,column) in empty_squares:
                 temp_board = copy.deepcopy(board)
-                temp_board.mark_square(row,column, self.player % 2 + 1)
+                temp_board.mark_square(row,column, 1)
                 eval = self.minimax(temp_board, False, alpha, beta)[0]
                 if eval > max_eval:
                     max_eval = eval
                     best_move = (row,column)
 
                 alpha = max(eval, alpha)
-                if alpha >= beta:
+                if beta <= alpha:
                     break
             
             return max_eval, best_move
@@ -141,14 +142,14 @@ class MiniMax:
 
             for (row,column) in empty_squares:
                 temp_board = copy.deepcopy(board)
-                temp_board.mark_square(row,column, self.player)
+                temp_board.mark_square(row,column, 2)
                 eval = self.minimax(temp_board, True, alpha, beta)[0]
                 if eval < min_eval:
                     min_eval = eval
                     best_move = (row,column)
 
                 beta = min(eval, beta)
-                if beta >= alpha:
+                if beta <= alpha:
                     break
             
             return min_eval, best_move
@@ -158,8 +159,11 @@ class MiniMax:
     def eval(self,main_board):
         if self.mode == 0:
             #random
+            start = time.time()
             eval = "Random"
             move = self.rand(main_board)
+            end = time.time()
+            execution_time = (end-start) * 10**3
 
         else:
             start = time.time()
@@ -168,7 +172,7 @@ class MiniMax:
             end = time.time()
             execution_time = (end-start) * 10**3
 
-        print(f"Best move is {move} with evaluation of {eval} and a time of {execution_time}, ms")
+        print(f"Best move is {move} with evaluation of {eval} and an execution time of {execution_time}, ms")
 
         return move
     
@@ -180,6 +184,12 @@ class Game:
         self.player = 1 # 1 - cross 2 - circle
         self.gamemode = "minimax" #pvp or minimax
         self.running = True
+        screen.fill(BACKGROUND)
+        draw_text(screen, "Press 'G' to toggle modes (PvP/Minimax(default))", (20, 20))
+        draw_text(screen, "Press 'R' to reset the game", (20, 60))
+        draw_text(screen, "Press '0' for random mode, '1' for Minimax", (20, 100))
+        pygame.display.update()
+        pygame.time.delay(6000)  # Show message for 6 seconds before starting
         screen.fill(BACKGROUND)
         self.show_lines()
 
@@ -225,7 +235,17 @@ class Game:
         self.__init__()
 
     def is_over(self):
-        return self.board.final_state(show=True) != 0 or self.board.is_full()
+        winner = self.board.final_state(show=True)
+        if winner == 1:
+            draw_text(screen, "Player 1 Wins!", (WIDTH // 2 - OFFSET, HEIGHT // 2))
+        elif winner == 2:
+            draw_text(screen, "Player 2 Wins!", (WIDTH // 2 - OFFSET, HEIGHT // 2))
+        elif self.board.is_full():
+            draw_text(screen, "It's a Draw!", (WIDTH // 2 - OFFSET, HEIGHT // 2))
+
+        pygame.display.update()
+        return winner != 0 or self.board.is_full()
+
 
 
 
