@@ -3,6 +3,7 @@ import pygame
 import random
 import copy
 import numpy as np
+import time
 
 from constants import * 
 
@@ -98,7 +99,7 @@ class MiniMax:
 
         return empty_squares[index]
     
-    def minimax(self, board, maximizing):
+    def minimax(self, board, maximizing, alpha, beta):
         #Terminal state
         state = board.final_state()
 
@@ -106,39 +107,49 @@ class MiniMax:
         if state == 1:
             return 1, None
         
+        #Player 2 wins
         elif state == 2:
             return -1, None
         
+        #Board is full (draw)
         elif board.is_full():
             return 0, None
         
         if maximizing:
-            max_eval = -10
+            max_eval = float("-inf")
             best_move = None
             empty_squares = board.get_empty_squares()
 
             for (row,column) in empty_squares:
                 temp_board = copy.deepcopy(board)
                 temp_board.mark_square(row,column, self.player % 2 + 1)
-                eval = self.minimax(temp_board, False)[0]
+                eval = self.minimax(temp_board, False, alpha, beta)[0]
                 if eval > max_eval:
                     max_eval = eval
                     best_move = (row,column)
+
+                alpha = max(eval, alpha)
+                if alpha >= beta:
+                    break
             
             return max_eval, best_move
         
         else:
-            min_eval = 10
+            min_eval = float("inf")
             best_move = None
             empty_squares = board.get_empty_squares()
 
             for (row,column) in empty_squares:
                 temp_board = copy.deepcopy(board)
                 temp_board.mark_square(row,column, self.player)
-                eval = self.minimax(temp_board, True)[0]
+                eval = self.minimax(temp_board, True, alpha, beta)[0]
                 if eval < min_eval:
                     min_eval = eval
                     best_move = (row,column)
+
+                beta = min(eval, beta)
+                if beta >= alpha:
+                    break
             
             return min_eval, best_move
                 
@@ -151,10 +162,13 @@ class MiniMax:
             move = self.rand(main_board)
 
         else:
+            start = time.time()
             #minimax
-            eval, move = self.minimax(main_board,False)
+            eval, move = self.minimax(main_board,False, float("-inf"), float("inf"))
+            end = time.time()
+            execution_time = (end-start) * 10**3
 
-        print(f"Best move is {move} with evaluation of {eval}")
+        print(f"Best move is {move} with evaluation of {eval} and a time of {execution_time}, ms")
 
         return move
     
@@ -263,6 +277,7 @@ def main():
 
         if game.gamemode == "minimax" and game.player == minimax.player and game.running:
             pygame.display.update()
+
 
             row, column = minimax.eval(board)
             game.make_move(row, column)
