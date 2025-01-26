@@ -12,12 +12,31 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("UNBEATABLE TIC TAC TOE")
 
+
+#Function that writes any text on the screen with a preset for font size and color
 def draw_text(screen, text, position, font_size=30, color=(255, 255, 255)):
     font = pygame.font.Font(None, font_size)
     text_surface = font.render(text, True, color)
     screen.blit(text_surface, position)
 
 class Board:
+
+    """
+    Represents the Tic Tac Toe board and its state.
+
+    Attributes:
+        squares (np.ndarray): A 2D array representing the board state. 
+                              0 means empty, 1 means Player 1 (cross), and 2 means Player 2 (circle).
+        marked_squares (int): The count of marked squares on the board.
+
+    Methods:
+        final_state(show=False): Determines if the game has ended and identifies the winner.
+        mark_square(row, column, player): Marks a square with the given player's symbol.
+        square_empty(row, column): Checks if a square is empty.
+        get_empty_squares(): Returns a list of all empty squares on the board.
+        is_full(): Checks if the board is completely filled.
+        is_empty(): Checks if the board is completely empty.
+    """
     
     def __init__(self):
         self.squares = np.zeros( (ROWS,COLUMNS) )
@@ -89,6 +108,19 @@ class Board:
         return self.marked_squares == 0
     
 class MiniMax:
+
+    """
+    Implements the Minimax algorithm with alpha-beta pruning for Tic Tac Toe.
+
+    Attributes:
+        mode (int): The game mode. 0 for random moves, 1 for Minimax algorithm.
+        player (int): The player controlled by the AI (always Player 2).
+
+    Methods:
+        rand(board): Generates a random move from the available empty squares.
+        minimax(board, maximizing, alpha, beta): Applies the Minimax algorithm to find the optimal move.
+        eval(main_board): Evaluates the best move based on the current mode (random or Minimax).
+    """
     
     def __init__(self, mode=1, player=2):
         self.mode = mode
@@ -177,6 +209,26 @@ class MiniMax:
         return move
     
 class Game:
+
+    """
+    Manages the flow and logic of the Tic Tac Toe game.
+
+    Attributes:
+        board (Board): The current game board.
+        minimax (MiniMax): The Minimax algorithm instance for AI moves.
+        player (int): The current player's turn. 1 for Player 1 (cross), 2 for Player 2 (circle).
+        gamemode (str): The current game mode, either "pvp" or "minimax".
+        running (bool): Indicates if the game is currently active.
+
+    Methods:
+        show_lines(): Draws the grid lines on the screen.
+        change_turn(): Alternates the turn between Player 1 and Player 2.
+        draw_fig(row, column): Draws the player's figure (cross or circle) on the board.
+        make_move(row, column): Executes a move by marking the square and changing the turn.
+        change_gamemode(): Toggles the game mode between "pvp" and "minimax".
+        reset(): Resets the game state to start a new game.
+        is_over(): Checks if the game has ended and displays the winner or draw.
+    """
     
     def __init__(self):
         self.board = Board()
